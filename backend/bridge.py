@@ -1,4 +1,4 @@
-"""Mission Control Bridge - connects to OpenClaw Gateway."""
+"""Mission Control Bridge - connects to OpenClaw Proxy API."""
 import os
 import asyncio
 import logging
@@ -24,7 +24,7 @@ class OpenClawBridge:
         self.connected = False
         if self._client:
             await self._client.aclose()
-        self._client = httpx.AsyncClient(timeout=10.0)
+        self._client = httpx.AsyncClient(timeout=15.0)
         await self.test_connection()
 
     async def test_connection(self) -> dict:
@@ -32,33 +32,27 @@ class OpenClawBridge:
             return {"connected": False, "error": "No gateway URL configured"}
         try:
             start = time.monotonic()
-            headers = {}
-            if self.api_key:
-                headers["Authorization"] = f"Bearer {self.api_key}"
-            resp = await self._get("/api/sessions", headers=headers)
+            headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+            resp = await self._client.get(f"{self.gateway_url}/health", headers=headers)
             elapsed = int((time.monotonic() - start) * 1000)
             self.latency_ms = elapsed
-            if resp is not None:
+            if resp.status_code == 200:
                 self.connected = True
                 self.last_sync = time.time()
                 return {"connected": True, "latency_ms": elapsed, "gateway_url": self.gateway_url}
             else:
                 self.connected = False
-                return {"connected": False, "error": "Gateway not responding"}
+                return {"connected": False, "error": f"Status {resp.status_code}"}
         except Exception as e:
             self.connected = False
             return {"connected": False, "error": str(e)}
 
-    async def _get(self, path: str, headers: dict = None) -> Optional[dict]:
+    async def _get(self, path: str) -> Optional[dict]:
         if not self._client or not self.gateway_url:
             return None
         try:
-            req_headers = {}
-            if self.api_key:
-                req_headers["Authorization"] = f"Bearer {self.api_key}"
-            if headers:
-                req_headers.update(headers)
-            resp = await self._client.get(f"{self.gateway_url}{path}", headers=req_headers)
+            headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+            resp = await self._client.get(f"{self.gateway_url}{path}", headers=headers)
             if resp.status_code == 200:
                 return resp.json()
             return None
@@ -69,10 +63,10 @@ class OpenClawBridge:
         if not self._client or not self.gateway_url:
             return None
         try:
-            req_headers = {"Content-Type": "application/json"}
+            headers = {"Content-Type": "application/json"}
             if self.api_key:
-                req_headers["Authorization"] = f"Bearer {self.api_key}"
-            resp = await self._client.post(f"{self.gateway_url}{path}", json=data, headers=req_headers)
+                headers["Authorization"] = f"Bearer {self.api_key}"
+            resp = await self._client.post(f"{self.gateway_url}{path}", json=data, headers=headers)
             if resp.status_code in (200, 201):
                 return resp.json()
             return None
@@ -81,13 +75,13 @@ class OpenClawBridge:
 
     async def get_sessions(self) -> list:
         data = await self._get("/api/sessions")
-        if data is None:
-            return []
-        return data if isinstance(data, list) else data.get("sessions", [])
+        return data if isinstance(data, list) else []
+
+    async def get_status(self) -> dict:
+        return await self._get("/api/status") or {"status": "unknown"}
 
     async def send_message(self, session_key: str, message: str) -> dict:
-        result = await self._post(f"/api/sessions/{session_key}/message", {"content": message})
-        return result or {"error": "Failed to send message"}
+        return await self._post(f"/api/sessions/{session_key}/message", {"content": message}) or {"error": "Failed"}
 
     def get_connection_info(self) -> dict:
         return {
