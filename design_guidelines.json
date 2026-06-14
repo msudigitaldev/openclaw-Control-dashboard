@@ -1,0 +1,109 @@
+{
+  "theme_and_archetype": {
+    "theme": "dark",
+    "archetype": "4 (Swiss & High-Contrast) - Adapted for Tech/Terminal Control Room",
+    "rationale": "Mission Control dashboard for AI agents requires absolute functional clarity, high contrast for real-time data, and a technical aesthetic. Employs \"Crystal Glass\" surfaces over a dark navy void."
+  },
+  "colors": {
+    "background": {
+      "base": "#0a0e1a",
+      "surface_glass": "rgba(255, 255, 255, 0.03)",
+      "surface_solid": "#111827",
+      "terminal_bg": "#000000"
+    },
+    "brand": {
+      "primary": "#3b82f6",
+      "primary_hover": "#2563eb",
+      "success": "#10b981",
+      "danger": "#ef4444",
+      "warning": "#f59e0b"
+    },
+    "text": {
+      "primary": "#ffffff",
+      "secondary": "#9ca3af",
+      "terminal": "#10b981",
+      "muted": "#6b7280"
+    },
+    "border": {
+      "glass": "rgba(255, 255, 255, 0.1)",
+      "solid": "rgba(255, 255, 255, 0.05)",
+      "active": "rgba(59, 130, 246, 0.5)"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "headings": "'JetBrains Mono', monospace",
+      "body": "'Inter', sans-serif",
+      "terminal": "'JetBrains Mono', monospace"
+    },
+    "scales": {
+      "h1": "text-4xl tracking-tighter font-black",
+      "h2": "text-2xl tracking-tight font-bold",
+      "h3": "text-xl tracking-tight font-semibold",
+      "h4": "text-lg tracking-tight font-medium",
+      "body": "text-sm md:text-base leading-relaxed",
+      "overline": "text-xs uppercase tracking-[0.2em] text-gray-400 font-bold",
+      "terminal": "text-xs md:text-sm leading-tight"
+    }
+  },
+  "surfaces_and_effects": {
+    "cards": {
+      "type": "Crystal Glassmorphism",
+      "classes": "bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl"
+    },
+    "terminal": {
+      "classes": "bg-black border border-green-500/30 rounded-lg p-4 font-mono shadow-[inset_0_0_20px_rgba(0,255,0,0.05)]"
+    },
+    "buttons": {
+      "primary": "bg-blue-500 hover:bg-blue-400 text-white font-medium rounded-md px-4 py-2 transition-colors focus:ring-2 focus:ring-blue-500/50",
+      "danger": "bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/50 rounded-md px-4 py-2 transition-colors",
+      "ghost": "hover:bg-white/10 text-gray-300 rounded-md px-4 py-2 transition-colors"
+    }
+  },
+  "layout_and_spacing": {
+    "grid_strategy": "The 'Control Room' Protocol (Mode B)",
+    "spacing_scale": "Dense internal padding (p-4 to p-6) for data widgets, generous external gaps (gap-6 to gap-8)",
+    "page_container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8",
+    "dashboard_grid": "grid grid-cols-1 lg:grid-cols-12 gap-6",
+    "dashboard_areas": {
+      "top_stats": "col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6",
+      "main_activity": "col-span-12 lg:col-span-7",
+      "task_queue": "col-span-12 lg:col-span-5"
+    }
+  },
+  "components": {
+    "navigation": "Sticky header with backdrop-blur. Contains 'MISSION CONTROL' logo (JetBrains Mono), Search Bar (glassmorphism input), Bell Icon, Settings Gear, and a pulsing Connection Status Dot (green/red).",
+    "stat_cards": "Glassmorphism cards displaying a metric. Include an icon (lucide-react) and a subtle gradient text or sparkline chart if applicable.",
+    "live_agent_feed": "Table or List view. Columns: Agent Name (bold), Model (badge), Status (colored dot: green=active, yellow=idle, red=error), Current Task, Tokens Used, Cost. Use monospaced numbers for tabular data.",
+    "task_queue": "List of tasks with compact Shadcn Progress bars. Priority dots (Red=High, Yellow=Medium, Blue=Low). Filter tabs at the top.",
+    "chat_command": "Fixed to bottom or bottom of activity panel. Glassmorphism input with submit arrow icon.",
+    "kanban_board": "4 columns (Queued, In Progress, Completed, Failed). Columns are subtle border blocks. Cards are draggable (conceptually) glassmorphism blocks.",
+    "agent_detail_panel": "Side drawer or modal. Contains performance stats, action timeline, scrolling live terminal (retro green on black), and action buttons (Message, Steer, Kill).",
+    "charts": "Recharts wrapped in Shadcn Chart components. Use brand colors (blue, green, red, amber) for data series against dark background.",
+    "settings_tabs": "Shadcn Tabs component. Clean, form-heavy layouts using Shadcn inputs."
+  },
+  "icons_and_assets": {
+    "library": "lucide-react (already installed)",
+    "usage": "Use stroke-width 1.5 or 2 for clarity against dark backgrounds.",
+    "image_urls": {
+      "login_bg": {
+        "url": "https://images.unsplash.com/photo-1532190872407-280735d27e08?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwxfHxkYXJrJTIwYWJzdHJhY3QlMjB0ZWNoJTIwdGV4dHVyZXxlbnwwfHx8fDE3ODE0NjQwMDl8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Dark abstract tech texture for login page background. Apply an overlay like bg-[#0a0e1a]/80 to ensure form contrast."
+      }
+    }
+  },
+  "accessibility_and_motion": {
+    "testing_attributes": "All interactive elements MUST use data-testid (e.g., data-testid='login-submit', data-testid='agent-kill-button').",
+    "motion": "Use Framer Motion for card entrances (opacity 0 to 1, y: 10 to 0). Terminal logs should slide up smoothly. Task progress bars should animate changes.",
+    "contrast": "Ensure all text against the navy background passes WCAG AA. Text inside glass cards MUST be white or light gray (#d1d5db)."
+  },
+  "instructions_to_main_agent": [
+    "Use standard Tailwind classes. Do NOT write custom CSS unless absolutely necessary.",
+    "Implement glassmorphism heavily using `bg-white/5 backdrop-blur-xl border border-white/10`.",
+    "Use JetBrains Mono for Headings and Terminal. Use Inter for standard UI text.",
+    "Simulate WebSocket updates in the Dashboard, Agents, and Task pages using useEffect and setInterval (2-3s).",
+    "For the 'Live Terminal', create an auto-scrolling container with retro green text on a black background.",
+    "Charts must be styled to fit the dark theme, omitting default white grid lines and replacing them with rgba(255,255,255,0.05).",
+    "Do NOT use 'Inter' for Headings. Use 'JetBrains Mono'."
+  ]
+}
