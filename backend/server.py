@@ -16,6 +16,8 @@ from starlette.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
+from bridge import bridge
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
@@ -384,6 +386,64 @@ async def root():
     return {"service": "mission-control", "status": "online"}
 
 
+# ------------------- Bridge Config -------------------
+class BridgeConfigBody(BaseModel):
+    gateway_url: str
+    api_key: str = ""
+
+
+@api.post("/bridge/configure")
+async def configure_bridge(body: BridgeConfigBody, _=Depends(auth_required)):
+    await bridge.configure(body.gateway_url, body.api_key)
+    return bridge.get_connection_info()
+
+
+@api.get("/bridge/status")
+async def bridge_status(_=Depends(auth_required)):
+    return bridge.get_connection_info()
+
+
+@api.post("/bridge/test")
+async def test_bridge(_=Depends(auth_required)):
+    return await bridge.test_connection()
+
+
+@api.get("/bridge/sessions")
+async def bridge_sessions(_=Depends(auth_required)):
+    if not bridge.connected:
+        return []
+    return await bridge.get_sessions()
+
+
+@api.post("/bridge/sync")
+async def bridge_sync(_=Depends(auth_required)):
+    if not bridge.connected:
+        raise HTTPException(400, "Bridge not connected to OpenClaw")
+    sessions = await bridge.get_sessions()
+    global AGENTS
+    for s in sessions:
+        agent_id = s.get("key", s.get("id", "unknown"))
+        existing = next((a for a in AGENTS if a["id"] == agent_id), None)
+        agent_data = {
+            "id": agent_id,
+            "name": s.get("label", s.get("name", agent_id)),
+            "model": s.get("model", "unknown"),
+            "status": "active" if s.get("kind") == "main" else "idle",
+            "current_task": s.get("lastMessage", "Waiting...")[:80],
+            "tokens_used": s.get("tokenCount", 0),
+            "cost": s.get("cost", 0.0),
+            "uptime_seconds": s.get("uptime", 0),
+            "success_rate": 100.0,
+            "avg_latency_ms": bridge.latency_ms,
+            "color": "#3b82f6" if s.get("kind") == "main" else "#10b981",
+        }
+        if existing:
+            existing.update(agent_data)
+        else:
+            AGENTS.append(agent_data)
+    return {"synced": len(sessions), "agents": AGENTS}
+
+
 # ------------------- WebSocket simulator -------------------
 class WSManager:
     def __init__(self):
@@ -512,5 +572,10 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def on_startup():
+    gw_url = os.environ.get("OPENCLAW_GATEWAY_URL", "")
+    gw_key = os.environ.get("OPENCLAW_API_KEY", "")
+    if gw_url:
+        logger.info(f"Auto-connecting to OpenClaw at {gw_url}")
+        await bridge.configure(gw_url, gw_key)
     asyncio.create_task(simulator_loop())
-    logger.info("Mission Control simulator started")
+    logger.info("Mission Control started")
