@@ -28,7 +28,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Toaster
-          position="top-right"
+          position="bottom-right"
           theme="dark"
           toastOptions={{
             style: {
