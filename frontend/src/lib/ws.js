@@ -12,8 +12,14 @@ export default function useMissionWebSocket(onEvent) {
   onEventRef.current = onEvent;
 
   const connect = useCallback(() => {
-    if (!BACKEND_URL) return;
-    const url = BACKEND_URL.replace(/^http/, "ws") + "/api/ws";
+    // If no BACKEND_URL (production), use current origin
+    let url;
+    if (BACKEND_URL) {
+      url = BACKEND_URL.replace(/^http/, "ws") + "/api/ws";
+    } else {
+      const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+      url = proto + "//" + window.location.host + "/api/ws";
+    }
     try {
       const ws = new WebSocket(url);
       wsRef.current = ws;

@@ -17,6 +17,8 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 from bridge import bridge
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
@@ -579,3 +581,25 @@ async def on_startup():
         await bridge.configure(gw_url, gw_key)
     asyncio.create_task(simulator_loop())
     logger.info("Mission Control started")
+
+
+# ------------------- Health Check & Static Files -------------------
+FRONTEND_BUILD = ROOT_DIR.parent / "frontend" / "build"
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
+# Serve React frontend in production
+if FRONTEND_BUILD.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_BUILD / "static")), name="static")
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        # Serve index.html for all non-API routes (React SPA)
+        file_path = FRONTEND_BUILD / full_path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        return FileResponse(str(FRONTEND_BUILD / "index.html"))
